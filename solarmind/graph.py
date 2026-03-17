@@ -11,7 +11,9 @@ from .state import AgentState
 from .rag import retrieve_context
 
 # Open-source model components initialization
-llm = OllamaLLM(model="llama3")
+def get_llm():
+    return OllamaLLM(model="llama3", base_url=os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434"))
+
 search_tool = DuckDuckGoSearchRun()
 
 def researcher_node(state: AgentState) -> dict:
@@ -29,7 +31,7 @@ def researcher_node(state: AgentState) -> dict:
         f"summarize findings combining knowledge and the following search results: {search_res}."
     )
     # Using open-source free local LLM
-    response = llm.invoke(prompt)
+    response = get_llm().invoke(prompt)
 
     # Note: State uses add_strings reducer for research_report
     return {"research_report": f"=== RESEARCH REPORT ({query}) ===\n{response}"}
@@ -71,7 +73,7 @@ def technical_analyst_node(state: AgentState) -> dict:
         "If context has limited info, extrapolate structurally."
     )
     
-    tech_data = llm.invoke(prompt)
+    tech_data = get_llm().invoke(prompt)
     return {"technical_data": f"=== TECHNICAL ANALYSIS ===\n{tech_data}"}
 
 def critic_node(state: AgentState) -> dict:
@@ -82,7 +84,7 @@ def critic_node(state: AgentState) -> dict:
         "Does it have massive gaps, errors, or completely lack technical depth? "
         "Reply 'FAIL' explicitly if it needs heavy revision, otherwise 'PASS'."
     )
-    critique = llm.invoke(prompt)
+    critique = get_llm().invoke(prompt)
     critique_flag = "FAIL" in critique.upper()
     return {"critique_flag": critique_flag}
 
@@ -102,7 +104,7 @@ def writer_node(state: AgentState) -> dict:
         f"Research:\n{report}\n\nTechnical Data:\n{tech_data}"
     )
     
-    final_report = llm.invoke(prompt)
+    final_report = get_llm().invoke(prompt)
     # Output replaces research report via our custom reducer approach
     # Since add_strings appends, we'll format it with clear headers
     return {"research_report": f"\n\n=== FINAL COMPREHENSIVE REPORT ===\n{final_report}"}

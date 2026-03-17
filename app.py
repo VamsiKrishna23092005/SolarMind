@@ -6,6 +6,14 @@ import tempfile
 
 st.title("SolarMind Dashboard")
 
+st.sidebar.title("⚙️ Configuration")
+ollama_url = st.sidebar.text_input(
+    "Ollama Base URL", 
+    value=os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434"),
+    help="If running on Streamlit Cloud, paste your Ngrok/tunnel URL to your local Ollama instance here."
+)
+os.environ["OLLAMA_BASE_URL"] = ollama_url
+
 @st.cache_resource
 def load_app():
     return get_compiled_graph()
@@ -23,8 +31,17 @@ config = {"configurable": {"thread_id": st.session_state.thread_id}}
 if st.button("Run Pipeline") and prompt:
     with st.spinner("Running SolarMind parallel pipeline tasks..."):
         # Executes graph state up to Human-in-The-Loop interrupt
-        for event in app.stream({"research_query": prompt}, config=config):
-            st.write(event)
+        try:
+            for event in app.stream({"research_query": prompt}, config=config):
+                st.write(event)
+        except Exception as e:
+            if "ConnectError" in str(type(e).__name__) or "Connection error" in str(e):
+                st.error("🚨 **Connection Error: Could not connect to the Ollama LLM.**")
+                st.info("You are running on a cloud environment without a local Ollama instance. Please use the sidebar to define a public URL to your Ollama server, or run this dashboard locally.")
+                st.stop()
+            else:
+                st.error(f"Pipeline error: {e}")
+                st.stop()
             
         state = app.get_state(config)
         
@@ -36,8 +53,12 @@ if st.button("Run Pipeline") and prompt:
 def resume_pipeline():
     with st.spinner("Resuming pipeline compilation..."):
         # Proceed past interrupt point using natural human message
-        for event in app.stream({"messages": [{"role": "human", "content": "Approved"}]}, config=config):
-            st.write(event)
+        try:
+            for event in app.stream({"messages": [{"role": "human", "content": "Approved"}]}, config=config):
+                st.write(event)
+        except Exception as e:
+            st.error(f"Connection/Pipeline Error: {e}")
+            st.stop()
         
         state = app.get_state(config)
         st.success("Pipeline Completed!")
