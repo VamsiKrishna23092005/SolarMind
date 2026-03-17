@@ -5,7 +5,8 @@ langchain-ollama
 langchain-community
 langchain-chroma
 chromadb
-duckduckgo-search
+duckduckgo-search>=5.0.0
+ddgs
 streamlit
 fastapi
 uvicorn
