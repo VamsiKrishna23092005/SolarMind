@@ -1,0 +1,17 @@
+langgraph
+langgraph-checkpoint-sqlite
+langchain
+langchain-ollama
+langchain-community
+langchain-chroma
+chromadb
+duckduckgo-search
+streamlit
+fastapi
+uvicorn
+pytest
+transformers
+torch
+torchvision
+pillow
+pysqlite3

@@ -1,0 +1,16 @@
+# Environment
+venv/
+__pycache__/
+*.pyc
+
+# Local Data Stores
+chroma_db/
+checkpoints.sqlite
+checkpoints.sqlite-journal
+
+# Secrets/Local Env
+.env
+
+# MacOS/Windows hidden files
+.DS_Store
+Thumbs.db
